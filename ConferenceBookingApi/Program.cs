@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ConferenceBookingApi.Data;
+using ConferenceBookingApi.Services;
+using ConferenceBookingApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +12,11 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddScoped<IRoomService, RoomService>();
+
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
