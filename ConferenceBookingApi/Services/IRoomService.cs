@@ -7,5 +7,6 @@ namespace ConferenceBookingApi.Services
         Task<RoomResultDto> CreateRoomAsync(CreateRoomDto dto);
         Task<RoomResultDto> UpdateRoomAsync(int id, UpdateRoomDto dto);
         Task DeleteRoomAsync(int id);
+        Task<List<AvailableRoomResultDto>> GetAvailableRoomsAsync(AvailableRoomQueryDto query);
     }
 }

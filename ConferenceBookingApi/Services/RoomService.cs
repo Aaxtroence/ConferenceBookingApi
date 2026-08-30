@@ -104,5 +104,34 @@ namespace ConferenceBookingApi.Services
                 }).ToList() ?? new List<EquipmentDto>()
             };
         }
+        public async Task<List<AvailableRoomResultDto>> GetAvailableRoomsAsync(AvailableRoomQueryDto query)
+        {
+            if (query.EndTime <= query.StartTime)
+                throw new ValidationException("Кінцевий час має бути більшим за початковий");
+
+            var requestedStart = query.Date.Date + query.StartTime;
+            var requestedEnd = query.Date.Date + query.EndTime;
+
+            var rooms = await _context.Rooms
+                .Include(r => r.Bookings)
+                .Where(r => r.Capacity >= query.Capacity)
+                .ToListAsync();
+
+            var available = rooms.Where(r => !r.Bookings.Any(b =>
+                Overlaps(b, requestedStart, requestedEnd)));
+
+            return available.Select(r => new AvailableRoomResultDto
+            {
+                Id = r.Id,
+                Name = r.Name,
+                Capacity = r.Capacity,
+                BasePricePerHour = r.BasePricePerHour
+            }).ToList();
+        }
+
+        private static bool Overlaps(Booking booking, DateTime start, DateTime end)
+        {
+            return booking.StartTime < end && start < booking.EndTime;
+        }
     }
 }

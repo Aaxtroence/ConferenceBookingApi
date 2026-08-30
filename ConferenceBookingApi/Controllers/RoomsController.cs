@@ -22,6 +22,14 @@ namespace ConferenceBookingApi.Controllers
             return CreatedAtAction(nameof(CreateRoom), new { id = result.Id }, result);
         }
 
+        [HttpGet("available")]
+        public async Task<ActionResult<List<AvailableRoomResultDto>>> GetAvailableRooms(
+            [FromQuery] AvailableRoomQueryDto query)
+        {
+            var result = await _roomService.GetAvailableRoomsAsync(query);
+            return Ok(result);
+        }
+
         [HttpPut("{id}")]
         public async Task<ActionResult<RoomResultDto>> UpdateRoom(int id, UpdateRoomDto dto)
         {
