@@ -13,6 +13,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IRoomService, RoomService>();
+builder.Services.AddScoped<IPricingService, PricingService>();
 
 var app = builder.Build();
 
