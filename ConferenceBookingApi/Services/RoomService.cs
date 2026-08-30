@@ -9,10 +9,12 @@ namespace ConferenceBookingApi.Services
     public class RoomService : IRoomService
     {
         private readonly AppDbContext _context;
+        private readonly IPricingService _pricingService;
 
-        public RoomService(AppDbContext context)
+        public RoomService(AppDbContext context, IPricingService pricingService)
         {
             _context = context;
+            _pricingService = pricingService;
         }
 
         public async Task<RoomResultDto> CreateRoomAsync(CreateRoomDto dto)
@@ -132,6 +134,71 @@ namespace ConferenceBookingApi.Services
         private static bool Overlaps(Booking booking, DateTime start, DateTime end)
         {
             return booking.StartTime < end && start < booking.EndTime;
+        }
+
+        public async Task<RevenueReportDto> GetRevenueReportAsync(int roomId, DateTime from, DateTime to)
+        {
+            if (to <= from)
+                throw new ValidationException("Кінцева дата має бути пізніше за початкову");
+
+            var room = await _context.Rooms
+                .Include(r => r.Bookings)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room is null)
+                throw new NotFoundException($"Зал id={roomId} не знайдено");
+
+            var bookingsInRange = room.Bookings
+                .Where(b => b.StartTime >= from && b.StartTime < to)
+                .ToList();
+
+            return new RevenueReportDto
+            {
+                RoomId = room.Id,
+                RoomName = room.Name,
+                From = from,
+                To = to,
+                TotalBookings = bookingsInRange.Count,
+                TotalRevenue = bookingsInRange.Sum(b => b.TotalPrice)
+            };
+        }
+
+        public async Task<OccupancyReportDto> GetOccupancyReportAsync(int roomId, DateTime from, DateTime to)
+        {
+            if (to <= from)
+                throw new ValidationException("Кінцева дата має бути пізніше за початкову");
+
+            var room = await _context.Rooms
+                .Include(r => r.Bookings)
+                .FirstOrDefaultAsync(r => r.Id == roomId);
+
+            if (room is null)
+                throw new NotFoundException($"Зал id={roomId} не знайдено");
+
+            var bookingsInRange = room.Bookings
+                .Where(b => b.StartTime >= from && b.StartTime < to)
+                .ToList();
+
+            var bookedHours = bookingsInRange.Sum(b => (b.EndTime - b.StartTime).TotalHours);
+
+            var workingHoursPerDay = _pricingService.GetWorkingHoursPerDay();
+            var totalDays = Math.Max(1, Math.Ceiling((to - from).TotalDays));
+            var availableHours = totalDays * workingHoursPerDay;
+
+            var occupancyPercentage = availableHours > 0
+                ? Math.Round(bookedHours / availableHours * 100, 2)
+                : 0;
+
+            return new OccupancyReportDto
+            {
+                RoomId = room.Id,
+                RoomName = room.Name,
+                From = from,
+                To = to,
+                BookedHours = bookedHours,
+                AvailableHours = availableHours,
+                OccupancyPercentage = occupancyPercentage
+            };
         }
     }
 }

@@ -23,7 +23,7 @@ public class RoomServiceTests
     public async Task CreateRoom_ValidData_CreatesRoomSuccessfully()
     {
         await using var context = CreateContext();
-        var service = new RoomService(context);
+        var service = new RoomService(context, new PricingService());
 
         var dto = new CreateRoomDto
         {
@@ -43,7 +43,7 @@ public class RoomServiceTests
     public async Task CreateRoom_EmptyName_ThrowsValidationException()
     {
         await using var context = CreateContext();
-        var service = new RoomService(context);
+        var service = new RoomService(context, new PricingService());
 
         var dto = new CreateRoomDto { Name = "", Capacity = 50, BasePricePerHour = 2000 };
 
@@ -54,7 +54,7 @@ public class RoomServiceTests
     public async Task UpdateRoom_RoomNotFound_ThrowsNotFoundException()
     {
         await using var context = CreateContext();
-        var service = new RoomService(context);
+        var service = new RoomService(context, new PricingService());
 
         var dto = new UpdateRoomDto { Name = "Нова назва" };
 
@@ -79,7 +79,7 @@ public class RoomServiceTests
         });
         await context.SaveChangesAsync();
 
-        var service = new RoomService(context);
+        var service = new RoomService(context, new PricingService());
 
         await Assert.ThrowsAsync<ConflictException>(() => service.DeleteRoomAsync(room.Id));
     }
@@ -95,7 +95,7 @@ public class RoomServiceTests
         );
         await context.SaveChangesAsync();
 
-        var service = new RoomService(context);
+        var service = new RoomService(context, new PricingService());
 
         var query = new AvailableRoomQueryDto
         {

@@ -4,6 +4,9 @@ namespace ConferenceBookingApi.Services;
 
 public class PricingService : IPricingService
 {
+    private const int WorkingStartHour = 6;
+    private const int WorkingEndHour = 23;
+
     public decimal CalculateRoomCost(decimal basePricePerHour, DateTime start, DateTime end)
     {
         if (end <= start)
@@ -28,13 +31,24 @@ public class PricingService : IPricingService
         return total;
     }
 
-    private static decimal GetMultiplier(int hour) => hour switch
+    public double GetWorkingHoursPerDay()
     {
-        >= 6 and < 9 => 0.90m,
-        >= 9 and < 12 => 1.00m,
-        >= 12 and < 14 => 1.15m,
-        >= 14 and < 18 => 1.00m,
-        >= 18 and < 23 => 0.80m,
-        _ => throw new ValidationException("Допустимий час для бронювання: з 06:00 до 23:00")
-    };
+        return WorkingEndHour - WorkingStartHour;
+    }
+
+    private static decimal GetMultiplier(int hour)
+    {
+        if (hour < WorkingStartHour || hour >= WorkingEndHour)
+            throw new ValidationException($"Допустимий час для бронювання: з {WorkingStartHour}:00 до {WorkingEndHour}:00");
+
+        return hour switch
+        {
+            >= 6 and < 9 => 0.90m,
+            >= 9 and < 12 => 1.00m,
+            >= 12 and < 14 => 1.15m,
+            >= 14 and < 18 => 1.00m,
+            >= 18 and < 23 => 0.80m,
+            _ => 1.00m
+        };
+    }
 }
