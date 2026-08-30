@@ -16,7 +16,13 @@ namespace ConferenceBookingApi.Controllers
         }
 
         /// <summary>Сумарний дохід по залу за період</summary>
+        /// <param name="roomId">Id залу</param>
+        /// <param name="from">Початок періоду</param>
+        /// <param name="to">Кінець періоду</param>
         [HttpGet("revenue")]
+        [ProducesResponseType(typeof(RevenueReportDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RevenueReportDto>> GetRevenue(
             int roomId, DateTime from, DateTime to)
         {
@@ -25,7 +31,13 @@ namespace ConferenceBookingApi.Controllers
         }
 
         /// <summary>Відсоток зайнятості залу за період</summary>
+        /// <param name="roomId">Id залу</param>
+        /// <param name="from">Початок періоду</param>
+        /// <param name="to">Кінець періоду</param>
         [HttpGet("occupancy")]
+        [ProducesResponseType(typeof(OccupancyReportDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<OccupancyReportDto>> GetOccupancy(
             int roomId, DateTime from, DateTime to)
         {
